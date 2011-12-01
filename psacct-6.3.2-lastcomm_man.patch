@@ -1,0 +1,11 @@
+--- acct-6.3.2/lastcomm.1.pom	1997-09-30 01:41:53.000000000 +0200
++++ acct-6.3.2/lastcomm.1	2007-01-02 09:45:19.000000000 +0100
+@@ -99,7 +99,7 @@
+         D -- command terminated with the generation of a core file
+         X -- command was terminated with the signal SIGTERM
+    + the name of the user who ran the process
+-   + time the process exited
++   + time the process started
+ .SH OPTIONS
+ \. .PD 0
+ .TP

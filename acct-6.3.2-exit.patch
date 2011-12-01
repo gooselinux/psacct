@@ -1,0 +1,11 @@
+--- acct-6.3.2/accton.c.exit	Sat Sep  1 22:21:41 2001
++++ acct-6.3.2/accton.c	Sat Sep  1 22:23:36 2001
+@@ -108,7 +108,7 @@
+       acct_file = argv[optind];
+     }
+   
+-  if (acct (acct_file) == -1)
++  if (acct (acct_file) == -1 && errno != ENOSYS)
+     {
+       int err;
+       extern int errno;

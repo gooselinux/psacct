@@ -1,0 +1,118 @@
+diff -uNr acct-6.3.2.orig/lastcomm.c acct-6.3.2/lastcomm.c
+--- acct-6.3.2.orig/lastcomm.c	2004-08-30 21:15:47.000000000 -0400
++++ acct-6.3.2/lastcomm.c	2004-08-30 21:45:05.000000000 -0400
+@@ -40,6 +40,9 @@
+ #  include <time.h>
+ # endif
+ #endif
++#ifdef HAVE_UNISTD_H
++#include <unistd.h>
++#endif
+ 
+ #include <pwd.h>
+ 
+@@ -63,6 +66,8 @@
+ 
+ char *program_name;		/* name of the program, for usage & errs */
+ 
++static unsigned int hzval;
++
+ 
+ /* Here are various lists for the user to specify entries that they
+    want to see.  */
+@@ -91,6 +96,7 @@
+   int c;
+   int other_pacct_file_specified = 0; /* nonzero if the user used the
+ 					 `-f' or `--file' flag */
++  hzval = sysconf(_SC_CLK_TCK);
+ 
+   program_name = argv[0];
+   
+@@ -318,7 +324,7 @@
+ 	  btime = (time_t) rec->ac_btime;
+ 	  printf (" %-8.8s %-8.8s %6.2f secs %-16.16s\n",
+ 		  this_uid, this_dev,
+-		  ((ut + st) / (double) AHZ),
++		  ((ut + st) / (double) hzval),
+ 		  ctime (&btime));
+ 	}
+     }
+diff -uNr acct-6.3.2.orig/sa.c acct-6.3.2/sa.c
+--- acct-6.3.2.orig/sa.c	2004-08-30 21:15:47.000000000 -0400
++++ acct-6.3.2/sa.c	2004-08-30 21:47:49.000000000 -0400
+@@ -233,6 +233,7 @@
+ 				   "***other" category */
+ int always_yes = 0;		/* nonzero means always answer yes to
+ 				   a query */
++static unsigned int hzval;
+ 
+ 
+ /* prototypes */
+@@ -266,6 +267,7 @@
+ {
+   int c;
+ 
++  hzval = sysconf(_SC_CLK_TCK);
+   program_name = argv[0];
+   
+   /* Cache the page size of the machine for the PAGES_TO_KB macro */
+@@ -551,7 +553,7 @@
+ 
+   if (debugging_enabled)
+     {
+-      fprintf (stddebug, "AHZ -> %d\n", AHZ);
++      fprintf (stddebug, "hzval -> %d\n", hzval);
+       fprintf (stddebug, "getpagesize() -> %d\n", getpagesize ());
+       fprintf (stddebug, "system_page_size == %.2f\n", system_page_size);
+     }
+@@ -901,7 +903,7 @@
+   /* Christoph Badura <bad@flatlin.ka.sub.org> says: 
+    *
+    * The k*sec statistic is computed as
+-   * ((ac_utime+ac_stime)*pages_to_kbytes(ac_mem))/AHZ.  Of course you
++   * ((ac_utime+ac_stime)*pages_to_kbytes(ac_mem))/hzval.  Of course you
+    * need to expand the comp_t values. 
+    *
+    * PAGES_TO_KBYTES(x) simply divides x by (getpagesize()/1024).  Of
+@@ -1103,33 +1105,33 @@
+     {
+ #ifdef HAVE_ACUTIME
+ # ifdef ACUTIME_COMPT
+-      double ut = comp_t_2_double (rec->ac_utime) / (double) AHZ;
++      double ut = comp_t_2_double (rec->ac_utime) / (double) hzval;
+ # else
+-      double ut = (double) rec->ac_utime / (double) AHZ;
++      double ut = (double) rec->ac_utime / (double) hzval;
+ # endif
+ #endif
+ 
+ #ifdef HAVE_ACSTIME
+ # ifdef ACSTIME_COMPT
+-      double st = comp_t_2_double (rec->ac_stime) / (double) AHZ;
++      double st = comp_t_2_double (rec->ac_stime) / (double) hzval;
+ # else
+-      double st = (double) rec->ac_stime / (double) AHZ;
++      double st = (double) rec->ac_stime / (double) hzval;
+ # endif
+ #endif
+ 
+ #ifdef HAVE_ACETIME
+ # ifdef ACETIME_COMPT
+-      double et = comp_t_2_double (rec->ac_etime) / (double) AHZ;
++      double et = comp_t_2_double (rec->ac_etime) / (double) hzval;
+ # else
+-      double et = (double) rec->ac_etime / (double) AHZ;
++      double et = (double) rec->ac_etime / (double) hzval;
+ # endif
+ #endif
+ 
+ #ifdef HAVE_ACIO
+ # ifdef ACIO_COMPT
+-      double di = comp_t_2_double (rec->ac_io) / (double) AHZ;
++      double di = comp_t_2_double (rec->ac_io) / (double) hzval;
+ # else
+-      double di = (double) rec->ac_io / (double) AHZ;
++      double di = (double) rec->ac_io / (double) hzval;
+ # endif
+ #endif
+ 

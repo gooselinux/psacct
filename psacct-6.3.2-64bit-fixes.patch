@@ -1,0 +1,46 @@
+--- ./lastcomm.c.64bit-fixes	Mon Oct 13 20:28:36 1997
++++ ./lastcomm.c	Thu Mar  7 06:56:00 2002
+@@ -238,6 +238,7 @@
+ parse_entries (void)
+ {
+   struct acct *rec;             /* the current record */
++  time_t btime;	/* Fix for call to ctime for 64bit architectures */
+ 
+   /* loop while there are entries to be had */
+ 
+@@ -313,11 +314,12 @@
+ 	  else
+ #endif
+ 	    putchar (' ');
+-	  
++
++	  btime = (time_t) rec->ac_btime;
+ 	  printf (" %-8.8s %-8.8s %6.2f secs %-16.16s\n",
+ 		  this_uid, this_dev,
+ 		  ((ut + st) / (double) AHZ),
+-		  ctime (&rec->ac_btime));
++		  ctime (&btime));
+ 	}
+     }
+ }
+--- ./pacct_rd.c.64bit-fixes	Mon Oct 13 20:28:36 1997
++++ ./pacct_rd.c	Thu Mar  7 06:54:34 2002
+@@ -61,6 +61,9 @@
+ void
+ print_pacct_record (struct acct *rec, FILE *out)
+ {
++  /* Fix for call to ctime for 64bit architectures */
++  time_t btime = (time_t)rec->ac_btime;
++
+   fprintf (stddebug, "%-*.*s|", COMM_LEN, COMM_LEN, rec->ac_comm);
+ 
+ #define NUM_FORMAT "%6.1f"
+@@ -117,7 +120,7 @@
+ 	   );
+ #endif
+ 
+-  fprintf (stddebug, "%s", ctime ((time_t *) &(rec->ac_btime)));
++  fprintf (stddebug, "%s", ctime (&btime));
+ }
+ 
+ 

@@ -1,0 +1,94 @@
+--- acct-6.3.2/configure.pom	1998-03-10 19:10:13.000000000 +0100
++++ acct-6.3.2/configure	2005-06-08 14:24:04.624175432 +0200
+@@ -930,11 +930,11 @@
+ 
+ echo "$ac_t""$ac_cv_prog_cc_g" 1>&6
+   if test "$ac_test_CFLAGS" = set; then
+-    CFLAGS="$ac_save_CFLAGS"
++    CFLAGS="$ac_save_CFLAGS -D_FILE_OFFSET_BITS=64"
+   elif test $ac_cv_prog_cc_g = yes; then
+-    CFLAGS="-g -O2"
++    CFLAGS="-g -O2 -D_FILE_OFFSET_BITS=64"
+   else
+-    CFLAGS="-O2"
++    CFLAGS="-O2 -D_FILE_OFFSET_BITS=64"
+   fi
+ else
+   GCC=
+--- acct-6.3.2/file_rd.c.pom	1997-10-14 02:28:36.000000000 +0200
++++ acct-6.3.2/file_rd.c	2005-06-08 14:24:04.624175432 +0200
+@@ -5,6 +5,8 @@
+ 
+ #include "config.h"
+ 
++#define _LARGEFILE_SOURCE 1
++#define _FILE_OFFSET_BITS 64
+ #include <stdio.h>
+ 
+ #ifdef HAVE_STRING_H
+@@ -106,9 +108,9 @@
+ 	  
+ 	  if (fri->backwards)
+ 	    {
+-	      long offset, max_recs, recs_to_read;
++	      off_t offset, max_recs, recs_to_read;
+ 
+-	      if ((offset = ftell (fri->fp)) <= 0)
++	      if ((offset = ftello (fri->fp)) <= 0)
+ 		goto no_more_records;
+ 
+ 	      /* Read as many records as possible, up to
+@@ -127,8 +129,8 @@
+       
+ 	      if (debugging_enabled)
+ 		{
+-		  long new_offset = ftell (fri->fp);
+-		  fprintf (stddebug, "Did seek in file %ld --> %ld\n",
++		  off_t new_offset = ftello (fri->fp);
++		  fprintf (stddebug, "Did seek in file %lld --> %lld\n",
+ 			   offset, new_offset);
+ 		}
+       
+@@ -137,7 +139,7 @@
+ 		fatal ("get_entry: couldn't read from file");
+       
+ 	      if (debugging_enabled)
+-		fprintf (stddebug, "Got %ld records from file\n",
++		fprintf (stddebug, "Got %lld records from file\n",
+ 			 recs_to_read);
+   
+ 	      /* don't need to check this, because the above read was fine */
+--- acct-6.3.2/file_rd.h.pom	1997-10-14 02:28:36.000000000 +0200
++++ acct-6.3.2/file_rd.h	2005-06-08 14:24:04.625175280 +0200
+@@ -3,6 +3,9 @@
+  * data structures and routines for reading/writing binary
+  * record-oriented files. */
+ 
++#define __USE_XOPEN
++#include <unistd.h>
++
+ struct file_list {
+   char *name;
+   struct file_list *next;
+@@ -15,8 +18,8 @@
+ 				   because we close files as soon as
+ 				   we find their ends and free their
+ 				   entries from the linked list */
+-  int recs_read;		/* how many records are in our buffer? */
+-  int recs_left;		/* how many records are left in the
++  off_t recs_read;		/* how many records are in our buffer? */
++  off_t recs_left;		/* how many records are left in the
+ 				   buffer to be used? */
+   void *buffer;			/* the buffer for the data */
+   int buffered_records;		/* how many records to buffer */
+--- acct-6.3.2/INSTALL.pom	1997-09-29 23:02:02.000000000 +0200
++++ acct-6.3.2/INSTALL	2005-06-08 14:24:04.625175280 +0200
+@@ -59,7 +59,7 @@
+ initial values for variables by setting them in the environment.  Using
+ a Bourne-compatible shell, you can do that on the command line like
+ this:
+-     CC=c89 CFLAGS=-O2 LIBS=-lposix ./configure
++     CC=c89 CFLAGS="-O2 -D_FILE_OFFSET_BITS=64" LIBS=-lposix ./configure
+ 
+ Or on systems that have the `env' program, you can do it like this:
+      env CPPFLAGS=-I/usr/local/include LDFLAGS=-s ./configure
